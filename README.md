@@ -56,18 +56,3 @@ Open [http://localhost:3000/dashboard](http://localhost:3000/dashboard).
   Wallet metrics snapshot.
 - `GET|POST /api/internal/poll`  
   Internal poll trigger (protected by `x-cron-secret` when configured).
-
-## Polling and Deployment
-
-- Ingestion keeps an in-memory store with deduplication and per-chain cursors.
-- `vercel.json` includes cron trigger support for `/api/internal/poll`.
-- On Vercel, set `ALCHEMY_API_KEY` and `CRON_SECRET` in project environment settings.
-
-## Scripts
-
-```bash
-npm run dev
-npm run build
-npm run start
-npm run lint
-```
