@@ -1,13 +1,15 @@
 import type { WhaleTransaction } from "@/types/transaction";
 import { useMemo, useState } from "react";
 import { ChainBadge } from "@/components/dashboard/ChainIcon";
+import { SpotlightPanel } from "@/components/dashboard/SpotlightPanel";
 
 interface TransactionTableProps {
   transactions: WhaleTransaction[];
   compact?: boolean;
+  isLoading?: boolean;
 }
 
-export function TransactionTable({ transactions, compact = false }: TransactionTableProps) {
+export function TransactionTable({ transactions, compact = false, isLoading = false }: TransactionTableProps) {
   const PAGE_SIZE = 12;
   const [page, setPage] = useState(1);
 
@@ -27,7 +29,11 @@ export function TransactionTable({ transactions, compact = false }: TransactionT
   );
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-zinc-700 bg-zinc-900 shadow-xl shadow-black/25 transition hover:border-zinc-600">
+    <SpotlightPanel
+      className="overflow-x-auto rounded-2xl border border-zinc-700 bg-zinc-900 shadow-xl shadow-black/25 transition duration-300 hover:border-zinc-600"
+      glowColor="rgba(59,130,246,0.12)"
+      glowSizePx={360}
+    >
       <div className={`border-b border-zinc-700 ${compact ? "px-4 py-3" : "px-5 py-4"}`}>
         <h2 className="text-sm font-semibold text-zinc-100">Recent whale transactions</h2>
         <p className="mt-1 text-xs text-zinc-400">Latest normalized inflow/outflow movements across chains.</p>
@@ -45,10 +51,21 @@ export function TransactionTable({ transactions, compact = false }: TransactionT
           </tr>
         </thead>
         <tbody>
-          {pagedTransactions.length === 0 ? (
+          {isLoading ? (
+            Array.from({ length: 8 }).map((_, index) => (
+              <tr key={`loading-${index}`} className="border-t border-zinc-800">
+                <td colSpan={7} className={compact ? "px-3 py-2.5" : "px-4 py-3"}>
+                  <div className="h-6 animate-pulse rounded bg-zinc-800/90" />
+                </td>
+              </tr>
+            ))
+          ) : pagedTransactions.length === 0 ? (
             <tr>
               <td colSpan={7} className="px-4 py-8 text-center text-sm text-zinc-400">
-                No live transfers yet. Add tracked wallets and wait for the next poll.
+                <div className="space-y-1">
+                  <p className="text-lg">🐋</p>
+                  <p>No live transfers yet. Whale-sized activity will populate here automatically.</p>
+                </div>
               </td>
             </tr>
           ) : null}
@@ -92,14 +109,15 @@ export function TransactionTable({ transactions, compact = false }: TransactionT
       </table>
       <div className={`flex items-center justify-between border-t border-zinc-700 text-sm ${compact ? "px-4 py-2.5" : "px-5 py-3"}`}>
         <p className="text-zinc-400">
-          Showing {(currentPage - 1) * PAGE_SIZE + 1}-{Math.min(currentPage * PAGE_SIZE, sortedTransactions.length)} of{" "}
-          {sortedTransactions.length}
+          {isLoading
+            ? "Loading latest transfers..."
+            : `Showing ${(currentPage - 1) * PAGE_SIZE + 1}-${Math.min(currentPage * PAGE_SIZE, sortedTransactions.length)} of ${sortedTransactions.length}`}
         </p>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
+            disabled={isLoading || currentPage === 1}
             className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-violet-500/50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Previous
@@ -110,13 +128,13 @@ export function TransactionTable({ transactions, compact = false }: TransactionT
           <button
             type="button"
             onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
+            disabled={isLoading || currentPage === totalPages}
             className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-violet-500/50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Next
           </button>
         </div>
       </div>
-    </div>
+    </SpotlightPanel>
   );
 }

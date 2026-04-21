@@ -66,6 +66,7 @@ export default function DashboardPage() {
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [pricingWarning, setPricingWarning] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [compactMode, setCompactMode] = useState(() => {
     if (typeof window === "undefined") return false;
     return window.localStorage.getItem("dashboard-compact-mode") === "true";
@@ -89,7 +90,8 @@ export default function DashboardPage() {
   useEffect(() => {
     let active = true;
 
-    async function loadData() {
+    async function loadData(showLoader = false) {
+      if (showLoader) setIsLoading(true);
       try {
         const dashboardRes = await fetch(`/api/dashboard?chain=${chain}`, { cache: "no-store" });
         const dashboardJson = (await dashboardRes.json()) as {
@@ -144,11 +146,13 @@ export default function DashboardPage() {
           "Could not load live data. Add ALCHEMY_API_KEY in .env.local and refresh.",
         );
         setPricingWarning(null);
+      } finally {
+        if (active) setIsLoading(false);
       }
     }
 
-    loadData();
-    const interval = setInterval(loadData, 15_000);
+    loadData(true);
+    const interval = setInterval(() => loadData(false), 15_000);
     return () => {
       active = false;
       clearInterval(interval);
@@ -193,21 +197,33 @@ export default function DashboardPage() {
     return items;
   }, [errorMessage, pricingWarning, isDataStale, meta.lastPollAt]);
   const [dismissedToastIds, setDismissedToastIds] = useState<string[]>([]);
+  const [isReady, setIsReady] = useState(false);
   const visibleToasts = useMemo(
     () => toasts.filter((toast) => !dismissedToastIds.includes(toast.id)),
     [toasts, dismissedToastIds],
   );
 
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setIsReady(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  const revealClass = () =>
+    `transform-gpu transition-all duration-700 ease-out ${
+      isReady ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
+    }`;
+
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_20%_0%,_#1f2937,_#020617_50%,_#020617_85%)] p-4 text-zinc-100 sm:p-8">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_20%_0%,#1f2937,#020617_50%,#020617_85%)] p-4 text-zinc-100 sm:p-8">
       <ToastStack
         toasts={visibleToasts}
         onDismiss={(id) => setDismissedToastIds((prev) => [...prev, id])}
       />
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
-        <div className="flex flex-col gap-3 rounded-3xl border border-zinc-700/70 bg-zinc-900/75 p-6 shadow-2xl shadow-black/30 backdrop-blur-xl sm:flex-row sm:items-start sm:justify-between">
+        <div className={revealClass()} style={{ transitionDelay: "0ms" }}>
+          <div className="flex flex-col gap-3 rounded-3xl border border-zinc-700/70 bg-zinc-900/75 p-6 shadow-2xl shadow-black/30 backdrop-blur-xl sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="bg-gradient-to-r from-white to-zinc-300 bg-clip-text text-2xl font-bold tracking-tight text-transparent sm:text-4xl">
+            <h1 className="bg-linear-to-r from-white to-zinc-300 bg-clip-text text-2xl font-bold tracking-tight text-transparent sm:text-4xl">
               Web3 Whale Tracker Dashboard
             </h1>
             <p className="mt-2 text-sm text-zinc-300">
@@ -250,23 +266,39 @@ export default function DashboardPage() {
             </button>
           </div>
         </div>
+        </div>
 
-        <ChainFilter selectedChain={chain} onChange={setChain} />
+        <div className={revealClass()} style={{ transitionDelay: "80ms" }}>
+          <ChainFilter selectedChain={chain} onChange={setChain} />
+        </div>
 
-        <WhaleSummaryCards
-          totalWhales={summary.totalWhales}
-          totalInflowUsd={summary.inflowUsd24h}
-          totalOutflowUsd={summary.outflowUsd24h}
-          netFlowUsd24h={summary.inflowUsd24h - summary.outflowUsd24h}
-          largeTxCount24h={summary.largeTxCount24h}
-        />
+        <div className={revealClass()} style={{ transitionDelay: "140ms" }}>
+          <WhaleSummaryCards
+            totalWhales={summary.totalWhales}
+            totalInflowUsd={summary.inflowUsd24h}
+            totalOutflowUsd={summary.outflowUsd24h}
+            netFlowUsd24h={summary.inflowUsd24h - summary.outflowUsd24h}
+            largeTxCount24h={summary.largeTxCount24h}
+            isLoading={isLoading}
+          />
+        </div>
 
-        <AlertBanner alert={alerts[0] ?? null} />
-        <FlowChart data={flowSeries} isDark />
-        <TransactionTable transactions={filteredTransactions} compact={compactMode} />
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <ActivityFeed alerts={alerts} nowMs={nowMs} compact={compactMode} />
-          <WalletDetailPanel metrics={walletMetrics} compact={compactMode} />
+        <div className={revealClass()} style={{ transitionDelay: "200ms" }}>
+          <AlertBanner alert={alerts[0] ?? null} />
+        </div>
+        <div className={revealClass()} style={{ transitionDelay: "260ms" }}>
+          <FlowChart data={flowSeries} isDark isLoading={isLoading} />
+        </div>
+        <div className={revealClass()} style={{ transitionDelay: "320ms" }}>
+          <TransactionTable transactions={filteredTransactions} compact={compactMode} isLoading={isLoading} />
+        </div>
+        <div className={`grid grid-cols-1 gap-6 lg:grid-cols-2 ${revealClass()}`} style={{ transitionDelay: "380ms" }}>
+          <div>
+            <ActivityFeed alerts={alerts} nowMs={nowMs} compact={compactMode} isLoading={isLoading} />
+          </div>
+          <div>
+            <WalletDetailPanel metrics={walletMetrics} compact={compactMode} isLoading={isLoading} />
+          </div>
         </div>
       </div>
     </main>

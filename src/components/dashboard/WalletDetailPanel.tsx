@@ -1,6 +1,7 @@
 import type { SupportedChain } from "@/types/transaction";
 import { useMemo, useState } from "react";
 import { ChainBadge } from "@/components/dashboard/ChainIcon";
+import { SpotlightPanel } from "@/components/dashboard/SpotlightPanel";
 
 interface WalletMetric {
   label: string;
@@ -16,9 +17,10 @@ interface WalletMetric {
 interface WalletDetailPanelProps {
   metrics: WalletMetric[];
   compact?: boolean;
+  isLoading?: boolean;
 }
 
-export function WalletDetailPanel({ metrics, compact = false }: WalletDetailPanelProps) {
+export function WalletDetailPanel({ metrics, compact = false, isLoading = false }: WalletDetailPanelProps) {
   const PAGE_SIZE = 4;
   const [page, setPage] = useState(1);
   const sortedMetrics = useMemo(
@@ -34,21 +36,41 @@ export function WalletDetailPanel({ metrics, compact = false }: WalletDetailPane
   const activeWallets = sortedMetrics.filter((wallet) => wallet.lastActiveAt).length;
 
   return (
-    <div className={`flex ${compact ? "h-[520px]" : "h-[560px]"} flex-col rounded-2xl border border-zinc-700 bg-zinc-900 p-5 shadow-xl shadow-black/25`}>
+    <SpotlightPanel
+      className={`flex ${compact ? "h-[520px]" : "h-[560px]"} flex-col rounded-2xl border border-zinc-700 bg-zinc-900 p-5 shadow-xl shadow-black/25 transition duration-300 hover:border-zinc-600`}
+      glowColor="rgba(16,185,129,0.12)"
+      glowSizePx={320}
+    >
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-zinc-100">Per-whale metrics (24h)</h2>
         <span className="rounded-full bg-zinc-800 px-2 py-1 text-xs font-medium text-zinc-300">
           {activeWallets}/{metrics.length} active
         </span>
       </div>
-      <div className={`mt-3 flex-1 overflow-y-auto pr-1 ${compact ? "space-y-2" : "space-y-3"}`}>
-        {metrics.length === 0 ? (
-          <p className="text-sm text-zinc-400">No wallet metrics yet.</p>
+      <div className={`mt-3 min-h-0 flex-1 overflow-y-auto pr-1 ${compact ? "space-y-2" : "space-y-3"}`}>
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, index) => (
+            <div key={`loading-${index}`} className="rounded-xl border border-zinc-700 bg-zinc-800/40 p-3">
+              <div className="h-4 w-32 animate-pulse rounded bg-zinc-700/80" />
+              <div className="mt-2 h-3 w-24 animate-pulse rounded bg-zinc-700/70" />
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <div className="h-6 animate-pulse rounded bg-zinc-700/60" />
+                <div className="h-6 animate-pulse rounded bg-zinc-700/60" />
+                <div className="h-6 animate-pulse rounded bg-zinc-700/60" />
+                <div className="h-6 animate-pulse rounded bg-zinc-700/60" />
+              </div>
+            </div>
+          ))
+        ) : metrics.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-zinc-700 px-3 py-6 text-center text-sm text-zinc-400">
+            <p className="text-lg">🧠</p>
+            <p className="mt-1">No wallet metrics yet. Metrics appear once the first large transfers are indexed.</p>
+          </div>
         ) : null}
         {pagedMetrics.map((wallet) => (
           <div
             key={wallet.address}
-            className={`rounded-xl border border-zinc-700 bg-gradient-to-br from-zinc-800 via-zinc-900 to-zinc-800 transition hover:border-zinc-600 hover:shadow-lg hover:shadow-black/20 ${compact ? "p-3" : "p-3.5"}`}
+            className={`rounded-xl border border-zinc-700 bg-linear-to-br from-zinc-800 via-zinc-900 to-zinc-800 transition hover:border-zinc-600 hover:shadow-lg hover:shadow-black/20 ${compact ? "p-3" : "p-3.5"}`}
           >
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-zinc-100">{wallet.label}</p>
@@ -87,7 +109,7 @@ export function WalletDetailPanel({ metrics, compact = false }: WalletDetailPane
           </div>
         ))}
       </div>
-      {metrics.length > 0 ? (
+      {!isLoading && metrics.length > 0 ? (
         <div className="mt-3 flex items-center justify-between border-t border-zinc-700 pt-3 text-xs">
           <p className="text-zinc-400">
             Showing {(currentPage - 1) * PAGE_SIZE + 1}-{Math.min(currentPage * PAGE_SIZE, metrics.length)} of{" "}
@@ -116,6 +138,6 @@ export function WalletDetailPanel({ metrics, compact = false }: WalletDetailPane
           </div>
         </div>
       ) : null}
-    </div>
+    </SpotlightPanel>
   );
 }
