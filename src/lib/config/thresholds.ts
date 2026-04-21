@@ -1,0 +1,7 @@
+export const LARGE_TX_USD_THRESHOLD = 100_000;
+
+export const OUTFLOW_SPIKE_USD_THRESHOLD = 1_000_000;
+
+export const POLL_INTERVAL_MS = 30_000;
+export const MAX_STORED_TRANSACTIONS = 1_000;
+export const MAX_STORED_ALERTS = 100;
