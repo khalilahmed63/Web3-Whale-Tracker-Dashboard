@@ -66,11 +66,25 @@ export default function DashboardPage() {
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [pricingWarning, setPricingWarning] = useState<string | null>(null);
+  const [compactMode, setCompactMode] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("dashboard-compact-mode") === "true";
+  });
 
   useEffect(() => {
     const timer = setInterval(() => setNowMs(Date.now()), 15_000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.add("dark");
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("dashboard-compact-mode", String(compactMode));
+    }
+  }, [compactMode]);
 
   useEffect(() => {
     let active = true;
@@ -185,24 +199,36 @@ export default function DashboardPage() {
   );
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-zinc-100 via-zinc-50 to-white p-6 sm:p-10">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_20%_0%,_#1f2937,_#020617_50%,_#020617_85%)] p-4 text-zinc-100 sm:p-8">
       <ToastStack
         toasts={visibleToasts}
         onDismiss={(id) => setDismissedToastIds((prev) => [...prev, id])}
       />
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white/90 p-5 shadow-sm sm:flex-row sm:items-start sm:justify-between">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
+        <div className="flex flex-col gap-3 rounded-3xl border border-zinc-700/70 bg-zinc-900/75 p-6 shadow-2xl shadow-black/30 backdrop-blur-xl sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl">
+            <h1 className="bg-gradient-to-r from-white to-zinc-300 bg-clip-text text-2xl font-bold tracking-tight text-transparent sm:text-4xl">
               Web3 Whale Tracker Dashboard
             </h1>
-            <p className="mt-1 text-sm text-zinc-600">
-              Monitor tracked whales and flag large inflows and outflows.
+            <p className="mt-2 text-sm text-zinc-300">
+              Real-time intelligence for high-value wallet movements across major EVM chains.
             </p>
           </div>
-          <div className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-600">
+          <div className="rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-xs text-zinc-300 shadow-lg shadow-black/20">
             <div className="flex items-center gap-2">
-              <span className="text-zinc-500">Poll status</span>
+              <span className="text-zinc-400">Poll status</span>
+              <span className="relative inline-flex h-2.5 w-2.5">
+                <span
+                  className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${
+                    meta.pollStatus === "polled" ? "bg-emerald-400" : "bg-amber-400"
+                  }`}
+                />
+                <span
+                  className={`relative inline-flex h-2.5 w-2.5 rounded-full ${
+                    meta.pollStatus === "polled" ? "bg-emerald-400" : "bg-amber-400"
+                  }`}
+                />
+              </span>
               <span className={`rounded px-2 py-0.5 font-medium ${pollStatusStyle}`}>
                 {meta.pollStatus.replaceAll("_", " ")}
               </span>
@@ -211,6 +237,17 @@ export default function DashboardPage() {
               Last updated:{" "}
               {meta.lastPollAt > 0 ? new Date(meta.lastPollAt).toLocaleTimeString() : "Waiting for first poll"}
             </p>
+            <button
+              type="button"
+              onClick={() => setCompactMode((prev) => !prev)}
+              className={`mt-2 rounded-lg border px-2 py-1 text-[11px] font-medium transition focus:outline-none focus:ring-2 focus:ring-violet-500/50 ${
+                compactMode
+                  ? "border-violet-500 bg-violet-500/20 text-violet-200"
+                  : "border-zinc-700 text-zinc-200 hover:bg-zinc-800"
+              }`}
+            >
+              {compactMode ? "Compact: On" : "Compact: Off"}
+            </button>
           </div>
         </div>
 
@@ -225,11 +262,11 @@ export default function DashboardPage() {
         />
 
         <AlertBanner alert={alerts[0] ?? null} />
-        <FlowChart data={flowSeries} />
-        <TransactionTable transactions={filteredTransactions} />
+        <FlowChart data={flowSeries} isDark />
+        <TransactionTable transactions={filteredTransactions} compact={compactMode} />
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <ActivityFeed alerts={alerts} />
-          <WalletDetailPanel metrics={walletMetrics} />
+          <ActivityFeed alerts={alerts} nowMs={nowMs} compact={compactMode} />
+          <WalletDetailPanel metrics={walletMetrics} compact={compactMode} />
         </div>
       </div>
     </main>
