@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Web3 Whale Tracker Dashboard
 
-## Getting Started
+Production-focused whale activity dashboard built with Next.js, TypeScript, and Tailwind.
 
-First, run the development server:
+Tracks large transfers across Ethereum, Base, and Polygon with a polling ingestion loop, alert feed, flow visualization, and a premium dark UI.
+
+## Features
+
+- Real-time style polling (15s UI refresh + internal poll endpoint)
+- Multi-chain support: Ethereum, Base, Polygon
+- Global whale mode (no wallet config required)
+- Large transfer alerts and whale activity feed
+- Inflow/outflow analytics and 12h flow chart
+- Per-whale metrics (24h), sortable transaction table, pagination
+- Dark-only premium UI with skeletons, animated KPIs, and interactive spotlight effects
+
+## Tech Stack
+
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
+- Recharts
+- Alchemy API (Transfers endpoint)
+
+## Environment Variables
+
+Create `.env.local`:
+
+```bash
+ALCHEMY_API_KEY=your_alchemy_key
+CRON_SECRET=your_random_secret
+```
+
+Notes:
+- `TRACKED_WALLETS_JSON` is optional. If omitted, the app runs in global whale mode.
+- Keep `.env.local` private (already gitignored).
+
+## Run Locally
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000/dashboard](http://localhost:3000/dashboard).
+
+## API Routes
+
+- `GET /api/dashboard?chain=all|ethereum|base|polygon`  
+  Aggregated dashboard payload: summary, flow series, wallet metrics, recent transactions, alerts.
+- `GET /api/transactions`  
+  Recent normalized whale transactions.
+- `GET /api/alerts`  
+  Recent UI alerts.
+- `GET /api/wallets`  
+  Wallet metrics snapshot.
+- `GET|POST /api/internal/poll`  
+  Internal poll trigger (protected by `x-cron-secret` when configured).
+
+## Polling and Deployment
+
+- Ingestion keeps an in-memory store with deduplication and per-chain cursors.
+- `vercel.json` includes cron trigger support for `/api/internal/poll`.
+- On Vercel, set `ALCHEMY_API_KEY` and `CRON_SECRET` in project environment settings.
+
+## Scripts
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run build
+npm run start
+npm run lint
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
