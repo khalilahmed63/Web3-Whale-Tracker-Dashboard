@@ -88,8 +88,8 @@ This dashboard provides a **clean and real-time view of large wallet activity**,
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/whale-tracker-dashboard.git
-cd whale-tracker-dashboard
+git clone https://github.com/YOUR_USERNAME/whale-tracker-dashboard.git](https://github.com/khalilahmed63/Web3-Whale-Tracker-Dashboard.git
+cd Web3-Whale-Tracker-Dashboard
 ```
 ### 2. Install dependencies
 
