@@ -16,9 +16,9 @@ https://web3-whale-tracker-dashboard-v2.vercel.app/dashboard
 
 ## 📸 Preview
 
-![Dashboard](./public/screenshots/dashboard.png)
-![Whale Activity](./public/screenshots/activity.png)
-![Transactions](./public/screenshots/transactions.png)
+![Dashboard](./public/screenshots/1.png)
+![Whale Activity](./public/screenshots/2.png)
+![Transactions](./public/screenshots/3.png)
 
 ---
 
