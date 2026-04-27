@@ -42,7 +42,7 @@ export function FlowChart({ data, isDark = false, isLoading = false }: FlowChart
         <h2 className="text-sm font-semibold text-zinc-100">Inflow vs outflow (last 12h)</h2>
         <span className="rounded-full bg-zinc-800 px-2 py-1 text-xs text-zinc-300 ring-1 ring-zinc-700">Live trend</span>
       </div>
-      <div className="mt-4 h-72">
+      <div className="mt-4 h-72 min-h-72 min-w-0">
         {isLoading ? (
           <div className="grid h-full grid-cols-12 items-end gap-2 rounded-lg border border-zinc-700 px-4 pb-4">
             {Array.from({ length: 12 }).map((_, i) => (
@@ -61,7 +61,7 @@ export function FlowChart({ data, isDark = false, isLoading = false }: FlowChart
             </div>
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={280}>
             <AreaChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
               <XAxis

@@ -31,6 +31,22 @@ interface FlowSeriesPoint {
   outflowUsd: number;
 }
 
+function normalizeFlowSeries(points: FlowSeriesPoint[] | undefined): FlowSeriesPoint[] {
+  if (!points || points.length === 0) return [];
+
+  return points
+    .map((point) => ({
+      bucketStart: point.bucketStart,
+      inflowUsd: Number.isFinite(point.inflowUsd) ? point.inflowUsd : Number(point.inflowUsd) || 0,
+      outflowUsd: Number.isFinite(point.outflowUsd) ? point.outflowUsd : Number(point.outflowUsd) || 0,
+    }))
+    .filter((point) => !Number.isNaN(new Date(point.bucketStart).getTime()))
+    .sort(
+      (a, b) =>
+        new Date(a.bucketStart).getTime() - new Date(b.bucketStart).getTime(),
+    );
+}
+
 interface WalletMetric {
   label: string;
   address: string;
@@ -122,7 +138,7 @@ export default function DashboardPage() {
             largeTxCount24h: 0,
           },
         );
-        setFlowSeries(dashboardJson.data?.flowSeries ?? []);
+        setFlowSeries(normalizeFlowSeries(dashboardJson.data?.flowSeries));
         setWalletMetrics(dashboardJson.data?.walletMetrics ?? []);
         setTransactions(dashboardJson.data?.recentTransactions ?? []);
         setAlerts(dashboardJson.data?.recentAlerts ?? []);
