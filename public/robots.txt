@@ -1,0 +1,5 @@
+User-Agent: *
+Allow: /
+
+Host: https://web3-whale-tracker-dashboard.vercel.app
+Sitemap: https://web3-whale-tracker-dashboard.vercel.app/sitemap.xml
